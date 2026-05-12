@@ -7,23 +7,3 @@ html, body {
   display: flex;
   flex-direction: column;
 }
-
-/* 2. Style the map container */
-#map {
-  flex: 1;        /* This tells the map to expand and fill the vertical space */
-  width: 100%;
-  min-height: 0;  /* Prevents flexbox from collapsing the map */
-  height: 100vh !important;
-}
-
-/* If you still have the global.css max-width, it might center the map. 
-   If you want a full-width map, add this: */
-body {
-    max-width: none !important;
-    padding: 0 !important;
-}
-
-h1 {
-    padding: 0.5rem 1rem;
-    margin: 0;
-}

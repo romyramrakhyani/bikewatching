@@ -13,6 +13,39 @@ const map = new mapboxgl.Map({
   maxZoom: 18, // Maximum allowed zoom
 });
 
-map.on('load', () => {
-    console.log('Map has successfully loaded!');
+map.on('load', async () => {
+    // 1. Add the Boston Source
+    map.addSource('boston_route', {
+        type: 'geojson',
+        data: 'https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::existing-bike-network-2022.geojson'
+    });
+
+    // 2. Add the Cambridge Source
+    map.addSource('cambridge_route', {
+        type: 'geojson',
+        data: 'https://raw.githubusercontent.com/cambridgegis/cambridge-gis-data/master/Recreation/Bike_Facilities/RECREATION_BikeFacilities.geojson'
+    });
+
+    // 3. Define a shared style so we don't repeat code
+    const bikeLaneStyle = {
+        'line-color': '#32D400',  // A nice bright green
+        'line-width': 3,
+        'line-opacity': 0.6
+    };
+
+    // 4. Create the Boston Layer
+    map.addLayer({
+        id: 'boston-bike-lanes',
+        type: 'line',
+        source: 'boston_route',
+        paint: bikeLaneStyle
+    });
+
+    // 5. Create the Cambridge Layer
+    map.addLayer({
+        id: 'cambridge-bike-lanes',
+        type: 'line',
+        source: 'cambridge_route',
+        paint: bikeLaneStyle
+    });
 });

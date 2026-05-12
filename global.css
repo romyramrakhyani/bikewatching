@@ -9,3 +9,14 @@ body {
   margin: auto;
   padding: 1em;
 }
+/* map.css */
+#map {
+    position: fixed;   /* Fixes it to the screen */
+    top: 80px;        /* Moves it down so your H1 title is visible */
+    bottom: 0;        /* Stretches it to the bottom of the screen */
+    left: 0;
+    right: 0;
+    width: 100vw;     /* 100% of the viewport width */
+    height: calc(100vh - 80px); /* 100% of height minus the top margin */
+    background-color: lightgray; /* If you see gray, the div is there! */
+}
