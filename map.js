@@ -13,8 +13,8 @@ const map = new mapboxgl.Map({
   maxZoom: 18, // Maximum allowed zoom
 });
 
-map.on('load', async () => {
-    // 1. Add the Boston Source
+map.on('load', () => {
+    console.log('Map has successfully loaded!');
     map.addSource('boston_route', {
         type: 'geojson',
         data: 'https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::existing-bike-network-2022.geojson'
