@@ -1,15 +1,18 @@
+/* 1. Ensure the foundation of the page fills the screen */
 html, body {
   margin: 0;
-  padding: 0; /* Changed from 5 to 0 */
+  padding: 0;
   height: 100%;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
+/* 2. Style the map container */
 #map {
-  flex: 1;      /* This tells the map to grow and fill all available space */
+  flex: 1;        /* This tells the map to expand and fill the vertical space */
   width: 100%;
-  /* Remove any conflicting constraints if necessary */
-  min-height: 0; 
+  min-height: 0;  /* Prevents flexbox from collapsing the map */
 }
 
 /* If you still have the global.css max-width, it might center the map. 
