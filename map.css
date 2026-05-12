@@ -7,15 +7,19 @@ html, body {
   display: flex;
   flex-direction: column;
 }
-/* map.css */
+#map {
+    flex-grow: 1;    /* Takes up the rest of the screen below the H1 */
+    position: relative; /* Essential for the SVG to anchor correctly */
+}
+
 #map svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10;       /* Ensures circles stay on top of the map */
-  pointer-events: none; /* Allows you to still drag the map */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10; 
+    pointer-events: none;
 }
 
 circle {

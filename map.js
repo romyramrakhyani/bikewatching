@@ -11,9 +11,18 @@ const map = new mapboxgl.Map({
 });
 
 function getCoords(station) {
-  const point = new mapboxgl.LngLat(+station.Long, +station.Lat); 
-  const { x, y } = map.project(point);
-  return { cx: x, cy: y };
+    // Check for Long/Lat (capitalized) OR lon/lat (lowercase)
+    const lon = station.Long || station.lon;
+    const lat = station.Lat || station.lat;
+
+    // Ensure we actually have numbers before giving them to Mapbox
+    if (!lon || !lat) {
+        return { cx: -10, cy: -10 }; // Hide off-screen if data is missing
+    }
+
+    const point = new mapboxgl.LngLat(+lon, +lat);
+    const { x, y } = map.project(point);
+    return { cx: x, cy: y };
 }
 
 map.on('load', async () => {
@@ -39,19 +48,21 @@ map.on('load', async () => {
 
     // Add Bluebikes Stations
     try {
-        const stationsData = await d3.json('https://dsc106.com/labs/lab07/data/bluebikes-stations.json');
-        const stations = stationsData.data.stations;
+    const stationsData = await d3.json('https://dsc106.com/labs/lab07/data/bluebikes-stations.json');
+    console.log('First station check:', stationsData.data.stations[0]); // Check names here!
+    
+    const stations = stationsData.data.stations;
         const svg = d3.select('#map').select('svg');
 
         const circles = svg.selectAll('circle')
             .data(stations)
             .enter()
             .append('circle')
-            .attr('r', 5)
-            .attr('fill', 'steelblue')
-            .attr('stroke', 'white')
+            .attr('r', 5)               // Radius
+            .attr('fill', '#007bff')    // Bright Blue
+            .attr('stroke', 'white')    // White border
             .attr('stroke-width', 1)
-            .attr('opacity', 0.8);
+            .attr('opacity', 1);        // Full opacity to start
 
         function updatePositions() {
             circles
