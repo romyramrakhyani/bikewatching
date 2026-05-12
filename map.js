@@ -11,13 +11,11 @@ const map = new mapboxgl.Map({
 });
 
 function getCoords(station) {
-    // Check for Long/Lat (capitalized) OR lon/lat (lowercase)
     const lon = station.Long || station.lon;
     const lat = station.Lat || station.lat;
 
-    // Ensure we actually have numbers before giving them to Mapbox
     if (!lon || !lat) {
-        return { cx: -10, cy: -10 }; // Hide off-screen if data is missing
+        return { cx: -10, cy: -10 };
     }
 
     const point = new mapboxgl.LngLat(+lon, +lat);
@@ -32,37 +30,71 @@ map.on('load', async () => {
         'line-opacity': 0.6
     };
 
-    // Add Boston Lanes
+    // Add Bike Lanes
     map.addSource('boston_route', {
         type: 'geojson',
         data: 'https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::existing-bike-network-2022.geojson'
     });
     map.addLayer({ id: 'boston-lanes', type: 'line', source: 'boston_route', paint: bikeStyle });
 
-    // Add Cambridge Lanes
     map.addSource('cambridge_route', {
         type: 'geojson',
         data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/RECREATION_BikeFacilities.geojson'
     });
     map.addLayer({ id: 'cambridge-lanes', type: 'line', source: 'cambridge_route', paint: bikeStyle });
 
-    // Add Bluebikes Stations
+    // Step 4: Loading Traffic and Stations
     try {
-    const stationsData = await d3.json('https://dsc106.com/labs/lab07/data/bluebikes-stations.json');
-    console.log('First station check:', stationsData.data.stations[0]); // Check names here!
-    
-    const stations = stationsData.data.stations;
+        const [stationsData, trips] = await Promise.all([
+            d3.json('https://dsc106.com/labs/lab07/data/bluebikes-stations.json'),
+            d3.csv('https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv')
+        ]);
+
+        let stations = stationsData.data.stations;
+
+        // Step 4.2: Calculate traffic volumes
+        const departures = d3.rollup(
+            trips,
+            (v) => v.length,
+            (d) => d.start_station_id
+        );
+
+        const arrivals = d3.rollup(
+            trips,
+            (v) => v.length,
+            (d) => d.end_station_id
+        );
+
+        stations = stations.map((station) => {
+            let id = station.short_name;
+            station.arrivals = arrivals.get(id) ?? 0;
+            station.departures = departures.get(id) ?? 0;
+            station.totalTraffic = station.arrivals + station.departures;
+            return station;
+        });
+
+        // Step 4.3: Create Square Root Scale
+        const radiusScale = d3.scaleSqrt()
+            .domain([0, d3.max(stations, (d) => d.totalTraffic)])
+            .range([0, 25]);
+
         const svg = d3.select('#map').select('svg');
 
         const circles = svg.selectAll('circle')
             .data(stations)
             .enter()
             .append('circle')
-            .attr('r', 5)               // Radius
-            .attr('fill', '#007bff')    // Bright Blue
-            .attr('stroke', 'white')    // White border
+            .attr('r', d => radiusScale(d.totalTraffic)) // Scale radius by traffic
+            .attr('fill', 'steelblue')
+            .attr('stroke', 'white')
             .attr('stroke-width', 1)
-            .attr('opacity', 1);        // Full opacity to start
+            .attr('opacity', 0.6) // Lower opacity for better overlap visibility
+            .each(function (d) {
+                // Step 4.4: Add tooltips
+                d3.select(this)
+                    .append('title')
+                    .text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
+            });
 
         function updatePositions() {
             circles
@@ -77,6 +109,6 @@ map.on('load', async () => {
         map.on('moveend', updatePositions);
 
     } catch (error) {
-        console.error('Error loading stations:', error);
+        console.error('Error loading data:', error);
     }
 });
