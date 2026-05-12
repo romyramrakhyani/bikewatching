@@ -24,13 +24,13 @@ function getCoords(station) {
 }
 
 map.on('load', async () => {
+    // --- BIKE LANES SETUP ---
     const bikeStyle = {
         'line-color': '#32D400',
         'line-width': 3,
         'line-opacity': 0.6
     };
 
-    // Add Bike Lanes
     map.addSource('boston_route', {
         type: 'geojson',
         data: 'https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::existing-bike-network-2022.geojson'
@@ -43,7 +43,7 @@ map.on('load', async () => {
     });
     map.addLayer({ id: 'cambridge-lanes', type: 'line', source: 'cambridge_route', paint: bikeStyle });
 
-    // Step 4: Loading Traffic and Stations
+    // --- STEP 4: TRAFFIC & STATIONS ---
     try {
         const [stationsData, trips] = await Promise.all([
             d3.json('https://dsc106.com/labs/lab07/data/bluebikes-stations.json'),
@@ -52,7 +52,7 @@ map.on('load', async () => {
 
         let stations = stationsData.data.stations;
 
-        // Step 4.2: Calculate traffic volumes
+        // Step 4.2: Calculate traffic volumes using d3.rollup
         const departures = d3.rollup(
             trips,
             (v) => v.length,
@@ -73,7 +73,7 @@ map.on('load', async () => {
             return station;
         });
 
-        // Step 4.3: Create Square Root Scale
+        // Step 4.3: Create Square Root Scale for visual accuracy
         const radiusScale = d3.scaleSqrt()
             .domain([0, d3.max(stations, (d) => d.totalTraffic)])
             .range([0, 25]);
@@ -84,13 +84,13 @@ map.on('load', async () => {
             .data(stations)
             .enter()
             .append('circle')
-            .attr('r', d => radiusScale(d.totalTraffic)) // Scale radius by traffic
+            .attr('r', d => radiusScale(d.totalTraffic)) // Variable radius
             .attr('fill', 'steelblue')
             .attr('stroke', 'white')
             .attr('stroke-width', 1)
-            .attr('opacity', 0.6) // Lower opacity for better overlap visibility
+            .attr('opacity', 0.6)
             .each(function (d) {
-                // Step 4.4: Add tooltips
+                // Step 4.4: Add browser tooltips
                 d3.select(this)
                     .append('title')
                     .text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
