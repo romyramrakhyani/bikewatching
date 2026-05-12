@@ -33,8 +33,8 @@ map.on('load', () => {
   // CAMBRIDGE
   map.addSource('cambridge_route', {
     type: 'geojson',
-    data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/Bike_Facilities/RECREATION_BikeFacilities.geojson'
-  });
+    // This is the updated, direct path to the Cambridge bike data
+    data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/master/Recreation/RECREATION_BikeFacilities.geojson'
 
   map.addLayer({
     id: 'cambridge-lanes',
