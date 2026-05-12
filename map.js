@@ -6,7 +6,7 @@ mapboxgl.accessToken = 'pk.YOUR_ACTUAL_TOKEN_HERE';
 
 // Initialize the map
 const map = new mapboxgl.Map({
-  container: 'map', // ID of the div in index.html
+  container: "map", // ID of the div in index.html
   style: 'mapbox://styles/mapbox/streets-v12', // Basemap style
   center: [-71.09415, 42.36027], // [longitude, latitude]
   zoom: 12,
