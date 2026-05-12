@@ -9,15 +9,15 @@ const map = new mapboxgl.Map({
   zoom: 12,
 });
 
-map.on('load', () => {
-  // Shared styling for both cities
+map.on('load', async () => {
+  // Shared style object to save space
   const bikeStyle = {
     'line-color': '#32D400',
     'line-width': 3,
     'line-opacity': 0.6
   };
 
-  // BOSTON
+  // --- BOSTON ---
   map.addSource('boston_route', {
     type: 'geojson',
     data: 'https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::existing-bike-network-2022.geojson'
@@ -30,11 +30,12 @@ map.on('load', () => {
     paint: bikeStyle
   });
 
-  // CAMBRIDGE
+  // --- CAMBRIDGE ---
   map.addSource('cambridge_route', {
     type: 'geojson',
-    // This is the updated, direct path to the Cambridge bike data
+    // UPDATED LINK BELOW:
     data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/master/Recreation/RECREATION_BikeFacilities.geojson'
+  });
 
   map.addLayer({
     id: 'cambridge-lanes',
@@ -42,6 +43,6 @@ map.on('load', () => {
     source: 'cambridge_route',
     paint: bikeStyle
   });
-  
-  console.log("Both city layers added!");
+
+  console.log("Bike lanes loaded!");
 });
