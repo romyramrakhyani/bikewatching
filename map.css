@@ -92,3 +92,13 @@ circle, .legend > div {
   color: white; /* Ensure contrast against the colors */
   text-shadow: 0 1px 2px rgba(0,0,0,0.5); /* Helps readability */
 }
+circle {
+  --color-departures: steelblue;
+  --color-arrivals: darkorange;
+  --color: color-mix(
+    in oklch,
+    var(--color-departures) calc(100% * var(--departure-ratio)),
+    var(--color-arrivals)
+  );
+  fill: var(--color);
+}

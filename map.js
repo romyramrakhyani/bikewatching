@@ -1,7 +1,7 @@
 import mapboxgl from 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.15.0/+esm';
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 
-// --- GLOBAL VARIABLES & BUCKETS (Step 5.4) ---
+// --- GLOBAL VARIABLES & BUCKETS ---
 let timeFilter = -1;
 let departuresByMinute = Array.from({ length: 1440 }, () => []);
 let arrivalsByMinute = Array.from({ length: 1440 }, () => []);
@@ -17,7 +17,6 @@ const map = new mapboxgl.Map({
 });
 
 // --- HELPER FUNCTIONS ---
-
 function formatTime(minutes) {
     const date = new Date(0, 0, 0, 0, minutes);
     return date.toLocaleString('en-US', { timeStyle: 'short' });
@@ -36,15 +35,10 @@ function getCoords(station) {
     return { cx: x, cy: y };
 }
 
-// --- OPTIMIZED FILTERING (Step 5.4) ---
-
 function filterByMinute(tripsByMinute, minute) {
     if (minute === -1) return tripsByMinute.flat();
-
-    // Normalize both min and max minutes to the valid range [0, 1439]
     let minMinute = (minute - 60 + 1440) % 1440;
     let maxMinute = (minute + 60) % 1440;
-
     if (minMinute > maxMinute) {
         let beforeMidnight = tripsByMinute.slice(minMinute);
         let afterMidnight = tripsByMinute.slice(0, maxMinute);
@@ -55,7 +49,6 @@ function filterByMinute(tripsByMinute, minute) {
 }
 
 function computeStationTraffic(stations, timeFilter = -1) {
-    // Retrieve filtered trips efficiently using buckets
     const departures = d3.rollup(
         filterByMinute(departuresByMinute, timeFilter),
         (v) => v.length,
@@ -68,7 +61,6 @@ function computeStationTraffic(stations, timeFilter = -1) {
         (d) => d.end_station_id
     );
 
-    // Update each station with calculated values
     return stations.map((station) => {
         let id = station.short_name;
         station.arrivals = arrivals.get(id) ?? 0;
@@ -79,9 +71,7 @@ function computeStationTraffic(stations, timeFilter = -1) {
 }
 
 // --- MAIN MAP LOAD ---
-
 map.on('load', async () => {
-    // 1. Bike Lanes Setup
     const bikeStyle = { 'line-color': '#32D400', 'line-width': 3, 'line-opacity': 0.6 };
 
     map.addSource('boston_route', { type: 'geojson', data: 'https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::existing-bike-network-2022.geojson' });
@@ -90,27 +80,18 @@ map.on('load', async () => {
     map.addSource('cambridge_route', { type: 'geojson', data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/RECREATION_BikeFacilities.geojson' });
     map.addLayer({ id: 'cambridge-lanes', type: 'line', source: 'cambridge_route', paint: bikeStyle });
 
-    // 2. Data Loading & Bucket Filling
     const stationsData = await d3.json('https://dsc106.com/labs/lab07/data/bluebikes-stations.json');
     
-    // We add the buckets directly in the csv row conversion
-    const trips = await d3.csv('https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv', (trip) => {
+    await d3.csv('https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv', (trip) => {
         trip.started_at = new Date(trip.started_at);
         trip.ended_at = new Date(trip.ended_at);
-        
-        let startedMinutes = minutesSinceMidnight(trip.started_at);
-        departuresByMinute[startedMinutes].push(trip);
-
-        let endedMinutes = minutesSinceMidnight(trip.ended_at);
-        arrivalsByMinute[endedMinutes].push(trip);
-
+        departuresByMinute[minutesSinceMidnight(trip.started_at)].push(trip);
+        arrivalsByMinute[minutesSinceMidnight(trip.ended_at)].push(trip);
         return trip;
     });
 
-    // Initial station calculation
     let stations = computeStationTraffic(stationsData.data.stations);
 
-    // 3. Visualization Setup
     const radiusScale = d3.scaleSqrt()
         .domain([0, d3.max(stations, d => d.totalTraffic)])
         .range([0, 25]);
@@ -120,30 +101,25 @@ map.on('load', async () => {
         .data(stations, d => d.short_name)
         .enter()
         .append('circle')
-        .attr('fill', 'steelblue')
+        .attr('r', d => radiusScale(d.totalTraffic))
         .attr('stroke', 'white')
         .attr('stroke-width', 1)
-        .attr('opacity', 0.6);
+        .attr('opacity', 0.6)
         .style('--departure-ratio', d => stationFlow(d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0.5));
 
-    // 4. UI Elements & Reactivity
     const timeSlider = document.getElementById('time-slider');
     const selectedTime = document.getElementById('selected-time');
     const anyTimeLabel = document.getElementById('any-time');
 
     function updateScatterPlot(timeFilter) {
-        // Recompute station traffic using the optimized bucket filtering
         const filteredStations = computeStationTraffic(stationsData.data.stations, timeFilter);
-        
-        // Dynamically update radius range based on filter status
         timeFilter === -1 ? radiusScale.range([0, 25]) : radiusScale.range([3, 50]);
 
         circles
             .data(filteredStations, d => d.short_name)
             .join('circle')
-            .attr('r', d => radiusScale(d.totalTraffic));
+            .attr('r', d => radiusScale(d.totalTraffic))
             .style('--departure-ratio', d => stationFlow(d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0.5));
-}
     }
 
     function updateTimeDisplay() {
@@ -161,7 +137,6 @@ map.on('load', async () => {
     timeSlider.addEventListener('input', updateTimeDisplay);
     updateTimeDisplay();
     
-    // Position circles on map move
     function updatePositions() {
         circles.attr('cx', d => getCoords(d).cx).attr('cy', d => getCoords(d).cy);
     }
