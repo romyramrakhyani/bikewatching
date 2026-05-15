@@ -112,15 +112,18 @@ map.on('load', async () => {
     const anyTimeLabel = document.getElementById('any-time');
 
     function updateScatterPlot(timeFilter) {
+        // Recompute station traffic using the optimized bucket filtering
         const filteredStations = computeStationTraffic(stationsData.data.stations, timeFilter);
+    
+        // Dynamically update radius range based on filter status
         timeFilter === -1 ? radiusScale.range([0, 25]) : radiusScale.range([3, 50]);
 
         circles
             .data(filteredStations, d => d.short_name)
             .join('circle')
-            .attr('r', d => radiusScale(d.totalTraffic))
+            .attr('r', d => radiusScale(d.totalTraffic)) // Removed the extra period here
             .style('--departure-ratio', d => stationFlow(d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0.5));
-    }
+    } // Ensure there is only ONE closing brace here
 
     function updateTimeDisplay() {
         timeFilter = Number(timeSlider.value);
