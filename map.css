@@ -45,3 +45,18 @@ circle {
 circle {
   transition: r 0.2s, fill-opacity 0.2s;
 }
+header {
+    display: flex;
+    gap: 1em;
+    align-items: baseline;
+}
+
+label {
+    margin-left: auto;
+    display: block; /* Keeps time from jumping the slider */
+}
+
+em {
+    color: gray;
+    font-style: italic;
+}
