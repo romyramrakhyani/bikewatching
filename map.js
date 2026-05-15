@@ -77,7 +77,8 @@ map.on('load', async () => {
     map.addSource('boston_route', { type: 'geojson', data: 'https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::existing-bike-network-2022.geojson' });
     map.addLayer({ id: 'boston-lanes', type: 'line', source: 'boston_route', paint: bikeStyle });
 
-    map.addSource('cambridge_route', { type: 'geojson', data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/RECREATION_BikeFacilities.geojson' });
+    // FIXED: Using a reliable data mirror for Cambridge bike lanes
+    map.addSource('cambridge_route', { type: 'geojson', data: 'https://dsc106.com/labs/lab07/data/cambridge_bike_facilities.geojson' });
     map.addLayer({ id: 'cambridge-lanes', type: 'line', source: 'cambridge_route', paint: bikeStyle });
 
     const stationsData = await d3.json('https://dsc106.com/labs/lab07/data/bluebikes-stations.json');
@@ -94,7 +95,7 @@ map.on('load', async () => {
 
     const radiusScale = d3.scaleSqrt()
         .domain([0, d3.max(stations, d => d.totalTraffic)])
-        .range([0, 25]);
+        .range([3, 25]); // Set minimum radius to 3 so they don't disappear
 
     const svg = d3.select('#map').select('svg');
     const circles = svg.selectAll('circle')
@@ -112,18 +113,17 @@ map.on('load', async () => {
     const anyTimeLabel = document.getElementById('any-time');
 
     function updateScatterPlot(timeFilter) {
-        // Recompute station traffic using the optimized bucket filtering
         const filteredStations = computeStationTraffic(stationsData.data.stations, timeFilter);
-    
-        // Dynamically update radius range based on filter status
-        timeFilter === -1 ? radiusScale.range([0, 25]) : radiusScale.range([3, 50]);
+        
+        // Adjust range based on whether a filter is active
+        timeFilter === -1 ? radiusScale.range([3, 25]) : radiusScale.range([3, 50]);
 
         circles
             .data(filteredStations, d => d.short_name)
             .join('circle')
-            .attr('r', d => radiusScale(d.totalTraffic)) // Removed the extra period here
+            .attr('r', d => radiusScale(d.totalTraffic))
             .style('--departure-ratio', d => stationFlow(d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0.5));
-    } // Ensure there is only ONE closing brace here
+    }
 
     function updateTimeDisplay() {
         timeFilter = Number(timeSlider.value);

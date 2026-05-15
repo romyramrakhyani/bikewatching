@@ -1,4 +1,3 @@
-/* 1. Ensure the foundation of the page fills the screen */
 html, body {
   margin: 0;
   padding: 0;
@@ -8,17 +7,16 @@ html, body {
   flex-direction: column;
 }
 
-/* Header styling to keep it from squishing the map */
 h1 {
   margin: 0;
   padding: 10px;
   background-color: white;
-  z-index: 20; /* Keep title above the map layers */
+  z-index: 20;
 }
 
 #map {
-  flex-grow: 1;    /* Takes up all remaining vertical space */
-  position: relative; /* Allows the SVG to anchor to the map's corners */
+  flex-grow: 1;
+  position: relative;
 }
 
 #map svg {
@@ -27,78 +25,66 @@ h1 {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 10;      /* Sits on top of the Mapbox canvas */
-  pointer-events: none; /* Allows panning/zooming the map underneath */
+  z-index: 10;
+  pointer-events: none;
 }
 
-/* 2. Station Marker Styling */
-circle {
-  fill: steelblue;      /* Consistent Bluebikes color */
-  fill-opacity: 0.6;    /* Lower opacity makes overlapping circles darker */
-  stroke: white;        /* White border helps circles stand out */
-  stroke-width: 1px;
-  pointer-events: auto; /* MUST be auto so tooltips work on hover */
-  cursor: crosshair;    /* Visual feedback that the circle is interactive */
-}
-
-/* Optional: Smooth transition for when we add filters or radius changes later */
-circle {
-  transition: r 0.2s, fill-opacity 0.2s;
-}
+/* UI and Header styling */
 header {
     display: flex;
     gap: 1em;
     align-items: baseline;
+    padding: 10px;
 }
 
 label {
-    margin-left: auto;
-    display: block; /* Keeps time from jumping the slider */
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-em {
+em#any-time {
     color: gray;
     font-style: italic;
 }
-/* Define variables for colors used in both circles and legend */
+
+/* Station Marker Styling */
+circle {
+  transition: r 0.2s, fill-opacity 0.2s;
+  pointer-events: auto;
+  cursor: crosshair;
+}
+
+/* 6.1: Color Flow Logic */
 :root {
   --color-departures: steelblue;
   --color-arrivals: darkorange;
 }
 
-/* Base style for circles and legend items */
 circle, .legend > div {
   --color: color-mix(
     in oklch,
     var(--color-departures) calc(100% * var(--departure-ratio)),
     var(--color-arrivals)
   );
-  fill: var(--color); /* For the SVG circles */
-  background-color: var(--color); /* For the HTML legend boxes */
+  fill: var(--color);
+  background-color: var(--color);
 }
 
-/* Legend Container Styling (Design 1: Blocks) */
+/* 6.2: Legend Styling (Design 1: Blocks) */
 .legend {
   display: flex;
   gap: 1px;
   margin-block: 10px;
+  position: relative;
+  z-index: 100;
 }
 
 .legend > div {
   flex: 1;
-  padding: 10px 20px;
+  padding: 10px;
   text-align: center;
   font-size: 0.8em;
-  color: white; /* Ensure contrast against the colors */
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5); /* Helps readability */
-}
-circle {
-  --color-departures: steelblue;
-  --color-arrivals: darkorange;
-  --color: color-mix(
-    in oklch,
-    var(--color-departures) calc(100% * var(--departure-ratio)),
-    var(--color-arrivals)
-  );
-  fill: var(--color);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
