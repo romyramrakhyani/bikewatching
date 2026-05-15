@@ -5,6 +5,7 @@ import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 let timeFilter = -1;
 let departuresByMinute = Array.from({ length: 1440 }, () => []);
 let arrivalsByMinute = Array.from({ length: 1440 }, () => []);
+let stationFlow = d3.scaleQuantize().domain([0, 1]).range([0, 0.5, 1]);
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoicm9teXJhbXJha2h5YW5pIiwiYSI6ImNtcDMzd2lpZTA4MGkycm9vNWRjYmhkeGIifQ.2wK8hH7tNx-YUdRqK3z0Kw';
 
@@ -123,6 +124,7 @@ map.on('load', async () => {
         .attr('stroke', 'white')
         .attr('stroke-width', 1)
         .attr('opacity', 0.6);
+        .style('--departure-ratio', d => stationFlow(d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0.5));
 
     // 4. UI Elements & Reactivity
     const timeSlider = document.getElementById('time-slider');
@@ -140,6 +142,8 @@ map.on('load', async () => {
             .data(filteredStations, d => d.short_name)
             .join('circle')
             .attr('r', d => radiusScale(d.totalTraffic));
+            .style('--departure-ratio', d => stationFlow(d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0.5));
+}
     }
 
     function updateTimeDisplay() {
